@@ -1,5 +1,3 @@
-import jdk.internal.net.http.common.Log.channel
-import org.jetbrains.kotlin.konan.properties.hasProperty
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.text.SimpleDateFormat
@@ -8,7 +6,7 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    id("org.jetbrains.kotlin.plugin.compose") version "2.1.21"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.2.10"
 }
 
 fun readLocalOrEnvString(key: String, defaultValue: String = ""): String {
@@ -53,7 +51,7 @@ android {
     defaultConfig {
         applicationId = "io.agents.pokeclaw"
         minSdk = 28
-        targetSdk = 36
+        targetSdk = 37
         versionCode = readLocalOrEnvInt("POKECLAW_VERSION_CODE", 29)
         versionName = readLocalOrEnvString("POKECLAW_VERSION_NAME", "0.7.1")
         buildConfigField("String", "VERSION_INFO", getVersionGit())
@@ -144,14 +142,14 @@ dependencies {
 
 
     // Jetpack Compose
-    implementation(platform("androidx.compose:compose-bom:2025.05.00"))
+    implementation(platform("androidx.compose:compose-bom:2026.09.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.activity:activity-compose:1.9.3")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.activity:activity-compose:1.13.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // LiteRT-LM on-device LLM inference (Google AI Edge)
