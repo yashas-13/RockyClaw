@@ -1,5 +1,3 @@
-import jdk.internal.net.http.common.Log.channel
-import org.jetbrains.kotlin.konan.properties.hasProperty
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.text.SimpleDateFormat
@@ -8,7 +6,7 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    id("org.jetbrains.kotlin.plugin.compose") version "2.1.21"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.2.10"
 }
 
 fun readLocalOrEnvString(key: String, defaultValue: String = ""): String {
@@ -25,11 +23,7 @@ fun readLocalOrEnvInt(key: String, defaultValue: Int): Int {
 
 android {
     namespace = "io.agents.pokeclaw"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 37
 
     signingConfigs {
         create("release") {
@@ -53,7 +47,7 @@ android {
     defaultConfig {
         applicationId = "io.agents.pokeclaw"
         minSdk = 28
-        targetSdk = 36
+        targetSdk = 37
         versionCode = readLocalOrEnvInt("POKECLAW_VERSION_CODE", 29)
         versionName = readLocalOrEnvString("POKECLAW_VERSION_NAME", "0.7.1")
         buildConfigField("String", "VERSION_INFO", getVersionGit())
@@ -144,18 +138,18 @@ dependencies {
 
 
     // Jetpack Compose
-    implementation(platform("androidx.compose:compose-bom:2025.05.00"))
+    implementation(platform("androidx.compose:compose-bom:2026.09.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.activity:activity-compose:1.9.3")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.activity:activity-compose:1.13.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // LiteRT-LM on-device LLM inference (Google AI Edge)
-    implementation("com.google.ai.edge.litertlm:litertlm-android:0.10.0")
+    implementation(libs.litertlm)
 
     // ZXing 二维码/条形码扫描
     implementation(libs.zxing)
@@ -191,12 +185,10 @@ tasks.named("preBuild") { dependsOn("injectBuildFingerprint") }
 androidComponents {
     onVariants { variant ->
         variant.outputs.forEach { output ->
-            if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
-                val versionName = android.defaultConfig.versionName ?: "0.0.0"
-                val fileName = "PokeClaw_v${versionName}_${getDateTime()}.apk"
-                println("output file name: $fileName")
-                output.outputFileName.set(fileName)
-            }
+            val versionName = android.defaultConfig.versionName ?: "0.0.0"
+            val fileName = "PokeClaw_v${versionName}_${getDateTime()}.apk"
+            println("output file name: $fileName")
+            output.outputFileName.set(fileName)
         }
     }
 }

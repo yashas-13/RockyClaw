@@ -4,6 +4,8 @@
 package io.agents.pokeclaw.server
 
 import android.content.Context
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -45,6 +47,19 @@ object ConfigServerManager {
     fun start(context: Context): Boolean {
         val ctx = context.applicationContext
         appContext = ctx
+
+        // Android 17+ blocks direct LAN traffic until the runtime permission is granted.
+        // Auto-start paths (boot/network recovery) cannot show a permission dialog, so fail
+        // closed and let the Settings UI request the permission before retrying.
+        if (android.os.Build.VERSION.SDK_INT >= 37 &&
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                ctx,
+                Manifest.permission.ACCESS_LOCAL_NETWORK
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            XLog.w(TAG, "Cannot start ConfigServer: ACCESS_LOCAL_NETWORK not granted")
+            return false
+        }
 
         if (!isWifiConnected(ctx)) {
             XLog.e(TAG, "Cannot start ConfigServer: WiFi not connected")

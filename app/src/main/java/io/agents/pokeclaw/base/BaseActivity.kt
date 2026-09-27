@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import com.blankj.utilcode.util.AdaptScreenUtils
@@ -24,11 +25,12 @@ open class BaseActivity : AppCompatActivity() {
 
     override fun getResources(): Resources {
         val resources = super.getResources()
-        return AdaptScreenUtils.adaptWidth(resources, getDesignWidth())
+        return if (resources.configuration.screenWidthDp < 600) AdaptScreenUtils.adaptWidth(resources, getDesignWidth()) else resources
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.enableEdgeToEdge(window)
         applyStatusBarMode()
 
         // Handle status bar height uniformly - applied after layout is loaded
@@ -60,7 +62,7 @@ open class BaseActivity : AppCompatActivity() {
     private fun applyStatusBarPadding() {
         window.decorView.post {
             val rootView = findViewById<ViewGroup>(android.R.id.content)?.getChildAt(0)
-            rootView?.let { applyPaddingToRootView(it) }
+            rootView?.let { applyPaddingToRootView(it); ViewCompat.requestApplyInsets(it) }
         }
     }
 
@@ -71,12 +73,19 @@ open class BaseActivity : AppCompatActivity() {
     protected open fun applyPaddingToRootView(rootView: View) {
         if (!isApplyStatusBarPadding()) return
 
-        val statusBarHeight = BarUtils.getStatusBarHeight()
-        val existingPaddingTop = rootView.paddingTop
-
-        // Only add padding if there is none or it is smaller than the status bar height
-        if (existingPaddingTop < statusBarHeight) {
-            rootView.updatePadding(top = statusBarHeight)
+        val initialTop = rootView.paddingTop
+        val initialBottom = rootView.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.statusBars() or
+                    WindowInsetsCompat.Type.navigationBars() or
+                    WindowInsetsCompat.Type.displayCutout()
+            )
+            view.updatePadding(
+                top = initialTop + bars.top,
+                bottom = initialBottom + bars.bottom,
+            )
+            insets
         }
     }
 

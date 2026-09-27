@@ -8,11 +8,13 @@ import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.os.Handler
 import android.os.Looper
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import io.agents.pokeclaw.AppCapabilityCoordinator
 import io.agents.pokeclaw.R
@@ -224,9 +226,11 @@ class ForegroundService : Service() {
         _isRunning = true
         createNotificationChannel()
         if (hasNotificationPermission(this)) {
-            startForeground(
+            ServiceCompat.startForeground(
+                this,
                 NOTIFICATION_ID,
-                buildNotification(this, DEFAULT_TASK_TITLE, DEFAULT_TASK_TEXT)
+                buildNotification(this, DEFAULT_TASK_TITLE, DEFAULT_TASK_TEXT),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
             )
         } else {
             stopSelf()
@@ -247,7 +251,12 @@ class ForegroundService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val notification = createNotification(intent)
-        startForeground(NOTIFICATION_ID, notification)
+        ServiceCompat.startForeground(
+            this,
+            NOTIFICATION_ID,
+            notification,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+        )
         return START_NOT_STICKY
     }
 

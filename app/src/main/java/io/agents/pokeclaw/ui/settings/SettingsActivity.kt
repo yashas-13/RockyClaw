@@ -83,6 +83,20 @@ class SettingsActivity : BaseActivity() {
         }
     }
 
+    /** Android 17 gates direct LAN socket access behind ACCESS_LOCAL_NETWORK. */
+    private val localNetworkPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                toggleLanConfigServer()
+            } else {
+                Toast.makeText(
+                    this,
+                    "Local network access is required for LAN configuration server",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -127,6 +141,20 @@ class SettingsActivity : BaseActivity() {
         permOverlay?.setTrailingText(if (capabilities.overlayGranted) "Enabled" else "Disabled")
         permBattery?.setTrailingText(if (capabilities.batteryOptimizationIgnored) "Unrestricted" else "Restricted")
         permStorage?.setTrailingText(if (capabilities.storageAccessGranted) "Enabled" else "Disabled")
+    }
+
+    private fun toggleLanConfigServer() {
+        if (Build.VERSION.SDK_INT >= 37 &&
+            checkSelfPermission(Manifest.permission.ACCESS_LOCAL_NETWORK) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            localNetworkPermissionLauncher.launch(Manifest.permission.ACCESS_LOCAL_NETWORK)
+            return
+        }
+
+        val result = viewModel.toggleConfigServer(this)
+        if (result == getString(R.string.lan_config_no_wifi)) {
+            Toast.makeText(this, R.string.lan_config_no_wifi, Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun refreshExternalAutomation() {
@@ -750,12 +778,7 @@ class SettingsActivity : BaseActivity() {
                                     channelConfigLauncher.launch(ChannelConfigActivity.ChannelType.TELEGRAM)
                                 }
                             }
-                            SettingsViewModel.MenuAction.LAN_CONFIG -> {
-                                val result = viewModel.toggleConfigServer(this@SettingsActivity)
-                                if (result == getString(R.string.lan_config_no_wifi)) {
-                                    Toast.makeText(this@SettingsActivity, R.string.lan_config_no_wifi, Toast.LENGTH_SHORT).show()
-                                }
-                            }
+                            SettingsViewModel.MenuAction.LAN_CONFIG -> toggleLanConfigServer()
                             SettingsViewModel.MenuAction.LLM_CONFIG -> {
                                 llmConfigLauncher.launch(Intent(this@SettingsActivity, LlmConfigActivity::class.java))
                             }
