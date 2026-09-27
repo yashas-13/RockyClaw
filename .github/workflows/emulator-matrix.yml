@@ -76,6 +76,10 @@ jobs:
           - api-level: 35
             target: google_apis
             arch: x86_64
+          # Android 17 — current target SDK / platform
+          - api-level: 37
+            target: google_apis
+            arch: x86_64
 
     steps:
       - uses: actions/checkout@v4
