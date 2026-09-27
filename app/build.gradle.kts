@@ -23,11 +23,7 @@ fun readLocalOrEnvInt(key: String, defaultValue: Int): Int {
 
 android {
     namespace = "io.agents.pokeclaw"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 37
 
     signingConfigs {
         create("release") {
@@ -189,12 +185,10 @@ tasks.named("preBuild") { dependsOn("injectBuildFingerprint") }
 androidComponents {
     onVariants { variant ->
         variant.outputs.forEach { output ->
-            if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
-                val versionName = android.defaultConfig.versionName ?: "0.0.0"
-                val fileName = "PokeClaw_v${versionName}_${getDateTime()}.apk"
-                println("output file name: $fileName")
-                output.outputFileName.set(fileName)
-            }
+            val versionName = android.defaultConfig.versionName ?: "0.0.0"
+            val fileName = "PokeClaw_v${versionName}_${getDateTime()}.apk"
+            println("output file name: $fileName")
+            output.outputFileName.set(fileName)
         }
     }
 }
