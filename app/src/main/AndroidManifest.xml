@@ -26,9 +26,15 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <!-- Device features -->
+    <!-- The agent can operate with external pointer/keyboard input on large screens. -->
     <uses-feature
         android:name="android.hardware.touchscreen"
-        android:required="true" />
+        android:required="false" />
+
+    <!-- Android 17+: optional NPU acceleration for compatible on-device AI runtimes. -->
+    <uses-feature
+        android:name="android.hardware.npu"
+        android:required="false" />
 
     <application
         android:name=".ClawApplication"
