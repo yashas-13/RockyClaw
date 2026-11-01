@@ -384,10 +384,19 @@ object LocalModelManager {
         return if (isValidModelFile(file, model)) file.absolutePath else null
     }
 
-    private fun matchesConfiguredModel(model: ModelInfo, localConfig: LocalModelConfig): Boolean {
-        if (localConfig.modelId.equals(model.id, ignoreCase = true)) return true
-
+    internal fun matchesConfiguredModel(model: ModelInfo, localConfig: LocalModelConfig): Boolean {
         val modelPath = localConfig.modelPath.lowercase()
+
+        // Custom models all used to share the "custom-local" ID. Treating that ID
+        // as sufficient identity made a newly configured URL appear to be the
+        // previously downloaded model, even when its file name/path had changed.
+        // For custom models, require the configured path to identify this file.
+        if (model.isCustom) {
+            return modelPath.isNotBlank() &&
+                File(modelPath).name.equals(model.fileName, ignoreCase = true)
+        }
+
+        if (localConfig.modelId.equals(model.id, ignoreCase = true)) return true
         if (modelPath.endsWith(model.fileName.lowercase())) return true
 
         val display = localConfig.displayName.lowercase()
