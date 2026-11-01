@@ -1,6 +1,7 @@
 package io.agents.pokeclaw.agent.llm
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -59,4 +60,59 @@ class LocalModelManagerTest {
         assertEquals(internalRoot.resolve("models"), dir)
         assertTrue(dir.isDirectory)
     }
+    @Test
+    fun `custom model does not match a stale path just because its synthetic id matches`() {
+        val customModel = LocalModelManager.ModelInfo(
+            id = "custom-local",
+            displayName = "Custom: new-model.litertlm",
+            url = "https://models.example/new-model.litertlm",
+            fileName = "new-model.litertlm",
+            sizeBytes = 0L,
+            minRamGb = 0,
+            isCustom = true,
+        )
+        val staleConfig = LocalModelConfig(
+            modelPath = "/models/old-model.litertlm",
+            modelId = "custom-local",
+            displayName = "old-model",
+            backendPreference = "CPU",
+        )
+
+        assertFalse(LocalModelManager.matchesConfiguredModel(customModel, staleConfig))
+    }
+
+    @Test
+    fun `custom model matches when configured path points to its file`() {
+        val customModel = LocalModelManager.ModelInfo(
+            id = "custom-local",
+            displayName = "Custom: new-model.litertlm",
+            url = "https://models.example/new-model.litertlm",
+            fileName = "new-model.litertlm",
+            sizeBytes = 0L,
+            minRamGb = 0,
+            isCustom = true,
+        )
+        val matchingConfig = LocalModelConfig(
+            modelPath = "/models/new-model.litertlm",
+            modelId = "custom-local",
+            displayName = "new-model",
+            backendPreference = "CPU",
+        )
+
+        assertTrue(LocalModelManager.matchesConfiguredModel(customModel, matchingConfig))
+    }
+
+    @Test
+    fun `built in model continues to match by persisted model id`() {
+        val builtInModel = LocalModelManager.AVAILABLE_MODELS.first { it.id == "gemma4-e2b" }
+        val config = LocalModelConfig(
+            modelPath = "/models/legacy-model-path.bin",
+            modelId = builtInModel.id,
+            displayName = "legacy model",
+            backendPreference = "CPU",
+        )
+
+        assertTrue(LocalModelManager.matchesConfiguredModel(builtInModel, config))
+    }
+
 }
