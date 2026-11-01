@@ -173,12 +173,16 @@ class LlmConfigActivity : BaseActivity() {
             } else {
                 model.id == activeLocalModelId
             }
-            val isDefaultLocal = model.id == defaultLocalModelId
+            val isDefaultLocal = if (model.isCustom) {
+                LocalModelManager.matchesConfiguredModel(model, resolvedConfig.local)
+            } else {
+                model.id == defaultLocalModelId
+            }
             val supportedOnDevice = modelEntry?.isSupported == true
             val resolvedLocalPath = when (availability.source) {
                 LocalModelManager.AvailabilitySource.MANAGED_DOWNLOAD -> LocalModelManager.getModelPath(this, model)
                 LocalModelManager.AvailabilitySource.LINKED_FILE ->
-                    if (configuredBuiltInLocal?.id == model.id) resolvedConfig.local.modelPath else null
+                    if (model.isCustom || configuredBuiltInLocal?.id == model.id) resolvedConfig.local.modelPath else null
                 LocalModelManager.AvailabilitySource.MISSING -> null
             }
 
