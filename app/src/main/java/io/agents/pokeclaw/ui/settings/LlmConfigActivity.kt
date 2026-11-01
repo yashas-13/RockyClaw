@@ -165,7 +165,14 @@ class LlmConfigActivity : BaseActivity() {
             val modelEntry = catalog[model.id]
             val availability = LocalModelManager.availabilityForModel(this, model, resolvedConfig.local)
             val downloaded = availability.isAvailable
-            val isActive = model.id == activeLocalModelId
+            val isActive = if (model.isCustom) {
+                // Custom rows share a synthetic legacy ID; use the selected file
+                // to distinguish the currently active URL from a newly configured one.
+                resolvedConfig.activeMode == ActiveModelMode.LOCAL &&
+                    resolvedConfig.local.modelPath.substringAfterLast('/').equals(model.fileName, ignoreCase = true)
+            } else {
+                model.id == activeLocalModelId
+            }
             val isDefaultLocal = model.id == defaultLocalModelId
             val supportedOnDevice = modelEntry?.isSupported == true
             val resolvedLocalPath = when (availability.source) {
